@@ -1,5 +1,6 @@
 using api.Data;
 using api.Dtos.Stock;
+using api.Helpers;
 using api.Interfaces;
 using api.Model;
 using Microsoft.EntityFrameworkCore;
@@ -34,10 +35,30 @@ namespace api.Repository
             return stockModel;
         }
 
-        public async Task<List<Stock>> GetAllASync()
+        public async Task<List<Stock>> GetAllASync(QueryObject query)
         {
-            var list = await _context.Stock.Include(x=>x.comments).ToListAsync();
-            return list;
+            //var list = await _context.Stock.Include(x=>x.comments).ToListAsync(); // using IEnumerable
+
+            // using IQueryable
+            var stocks =  _context.Stock.Include(x=>x.comments).AsQueryable();
+            if (string.IsNullOrWhiteSpace(query.CompanyName) == false)
+            {
+                stocks = stocks.Where(x=>x.Company.Contains(query.CompanyName));
+            }
+            if (string.IsNullOrWhiteSpace(query.Symbol)==false)
+            {
+                stocks = stocks.Where(x=>x.Symbol.Contains(query.Symbol));
+            }
+
+            if (string.IsNullOrWhiteSpace(query.SortBy) == false)
+            {
+                if (query.SortBy.Equals("Symbol",StringComparison.OrdinalIgnoreCase))
+                {
+                    stocks = query.IsDesending ? stocks.OrderByDescending(s=>s.Symbol): stocks.OrderBy(s=>s.Symbol);
+                }
+            }
+        
+            return await stocks.ToListAsync(); // apply the operation here
         }
 
         public async Task<Stock?> GetByIdAsync(int id)

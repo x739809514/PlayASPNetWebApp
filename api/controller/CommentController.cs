@@ -35,7 +35,7 @@ namespace api.controller
             return Ok(commentDtos);
         }
 
-        [HttpGet("id:int")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById([FromRoute] int id)
         {
             if (!ModelState.IsValid)
@@ -48,7 +48,7 @@ namespace api.controller
             {
                 return NotFound();
             }
-            var commentDto = comment.ToCommentDto;
+            var commentDto = comment.ToCommentDto();
             return Ok(commentDto);
         }
 
