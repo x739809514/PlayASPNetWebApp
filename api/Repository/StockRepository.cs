@@ -3,6 +3,7 @@ using api.Dtos.Stock;
 using api.Helpers;
 using api.Interfaces;
 using api.Model;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 
 namespace api.Repository
@@ -57,8 +58,11 @@ namespace api.Repository
                     stocks = query.IsDesending ? stocks.OrderByDescending(s=>s.Symbol): stocks.OrderBy(s=>s.Symbol);
                 }
             }
-        
-            return await stocks.ToListAsync(); // apply the operation here
+
+            var skipNum = (query.PageNumber - 1) * query.PageSize;
+
+            // this can show the content of page you set
+            return await stocks.Skip(skipNum).Take(query.PageSize).ToListAsync(); // apply the operation here
         }
 
         public async Task<Stock?> GetByIdAsync(int id)
