@@ -3,6 +3,7 @@ using api.Model;
 using api.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace api.controller
 {
@@ -12,10 +13,12 @@ namespace api.controller
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly ITokenServices _tokenService;
-        public AccoutController(UserManager<AppUser> userManager, ITokenServices tokenService)
+        private readonly SignInManager<AppUser> _signinManager;
+        public AccoutController(UserManager<AppUser> userManager, ITokenServices tokenService, SignInManager<AppUser> signInManager)
         {
             _userManager = userManager;
             _tokenService = tokenService;
+            _signinManager = signInManager;
         }
 
         [HttpPost("register")]
@@ -53,6 +56,29 @@ namespace api.controller
             {
                 return StatusCode(500, e);
             }
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody]LoginDto loginDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var user = await _userManager.Users.FirstOrDefaultAsync(x=>x.UserName==loginDto.UserName);
+            if(user == null) return Unauthorized("Invalid Username");
+            var result = await _signinManager.CheckPasswordSignInAsync(user,loginDto.Password,false);
+            if (result.Succeeded == false)
+            {
+                return Unauthorized("Username not found or Password is wrong");
+            }
+
+            return Ok(new NewUserDto
+            {
+                UserName = user.UserName,
+                Email = user.Email,
+                Token = _tokenService.CreateToken(user)
+            });
         }
 
     }
