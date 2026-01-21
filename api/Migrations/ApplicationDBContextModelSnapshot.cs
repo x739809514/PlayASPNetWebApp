@@ -51,15 +51,15 @@ namespace api.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "1ef93c51-8f9d-4259-8205-ac896c651b51",
-                            ConcurrencyStamp = "b796965e-55c6-490a-9e9d-4023f3e4236f",
+                            Id = "a8a05a48-3ac2-4299-ad8d-f0c697335785",
+                            ConcurrencyStamp = "a3c8150f-5704-46d2-b460-110091b0a4bb",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "e3b96b9b-4583-4335-8fca-f3e464c0b90d",
-                            ConcurrencyStamp = "ec0f3539-e5ce-44f6-a142-cc3b1f0a5aa5",
+                            Id = "be09ba52-3643-48ae-aa7b-a195d4a85c91",
+                            ConcurrencyStamp = "3820a473-01bc-4f7a-b3f1-f894aa5e55bd",
                             Name = "User",
                             NormalizedName = "USER"
                         });
@@ -262,7 +262,22 @@ namespace api.Migrations
 
                     b.HasIndex("StockId");
 
-                    b.ToTable("Comment");
+                    b.ToTable("Comments");
+                });
+
+            modelBuilder.Entity("api.Model.Portfolio", b =>
+                {
+                    b.Property<string>("AppUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("StockId")
+                        .HasColumnType("int");
+
+                    b.HasKey("AppUserId", "StockId");
+
+                    b.HasIndex("StockId");
+
+                    b.ToTable("Portfolio");
                 });
 
             modelBuilder.Entity("api.Model.Stock", b =>
@@ -296,7 +311,7 @@ namespace api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Stock");
+                    b.ToTable("Stocks");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -359,9 +374,35 @@ namespace api.Migrations
                     b.Navigation("stock");
                 });
 
+            modelBuilder.Entity("api.Model.Portfolio", b =>
+                {
+                    b.HasOne("api.Model.AppUser", "AppUser")
+                        .WithMany("portfolios")
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("api.Model.Stock", "Stock")
+                        .WithMany("portfolios")
+                        .HasForeignKey("StockId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AppUser");
+
+                    b.Navigation("Stock");
+                });
+
+            modelBuilder.Entity("api.Model.AppUser", b =>
+                {
+                    b.Navigation("portfolios");
+                });
+
             modelBuilder.Entity("api.Model.Stock", b =>
                 {
                     b.Navigation("comments");
+
+                    b.Navigation("portfolios");
                 });
 #pragma warning restore 612, 618
         }
